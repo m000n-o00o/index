@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#161816">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Index">
+<meta name="description" content="Index: save, sort and search your useful links in one place.">
+<title>Index</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ---------- Theme: calm index ----------
+     Quiet surfaces, generous spacing and large readable text.
+     The one signature: the index mark and the command-style search. */
+  :root {
+    --sans-en: "IBM Plex Sans", "IBM Plex Sans Arabic", system-ui, sans-serif;
+    --sans-ar: "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --ease: cubic-bezier(.2, .8, .2, 1);
+    --pad: 20px;
+    --r: 14px;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    /* Brand palette: surface #161816, ink #f4f6ee, terminal-green #9bbc0f */
+    --bg: #161816;
+    --surface: #1e211e;
+    --surface-2: #282b27;
+    --line: #333732;
+    --ink: #f4f6ee;
+    --dim: #a8ad9f;
+    --accent: #9bbc0f;
+    --accent-ink: #9bbc0f;
+    --on-accent: #161816;
+    --st-new: #8fb8e8;
+    --st-seen: #e8c76a;
+    --st-done: #9bbc0f;
+    --danger: #ff8a80;
+    --mark: rgba(155, 188, 15, .24);
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #f4f6ee;
+    --surface: #fbfcf7;
+    --surface-2: #e9ecdf;
+    --line: #dadfcd;
+    --ink: #161816;
+    --dim: #5b6052;
+    --accent: #9bbc0f;
+    --accent-ink: #306230;
+    --on-accent: #161816;
+    --st-new: #2f64b0;
+    --st-seen: #946010;
+    --st-done: #306230;
+    --danger: #b3261e;
+    --mark: rgba(155, 188, 15, .3);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans-en); font-size: 17px; line-height: 1.7;
+    -webkit-tap-highlight-color: transparent; -webkit-font-smoothing: antialiased;
+  }
+  :root[lang="ar"] body { font-family: var(--sans-ar); }
+  button, input, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 3px; border-radius: 8px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  [hidden] { display: none !important; }
+  svg.i { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .rec-url { font-family: var(--mono); }
+  .latin-inline { direction: ltr; unicode-bidi: isolate; }
+  mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 2px; }
+
+  .frame { max-width: 720px; margin: 0 auto; padding-inline: var(--pad); }
+
+  /* ---------- Header ---------- */
+  .top {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding-top: calc(env(safe-area-inset-top) + 22px); padding-bottom: 4px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .mark-logo {
+    width: 40px; height: 40px; border-radius: 11px; background: var(--accent); color: var(--on-accent);
+    display: grid; place-items: center; flex: none; font-family: var(--mono); font-weight: 600; font-size: 20px;
+  }
+  .brand h1 { margin: 0; font-size: 24px; font-weight: 600; line-height: 1.2; }
+  .brand p { margin: 0; color: var(--dim); font-size: 14px; line-height: 1.4; }
+
+  .icon-btn {
+    width: 46px; height: 46px; border: 0; background: transparent; border-radius: 12px;
+    color: var(--dim); display: inline-grid; place-items: center; text-decoration: none; flex: none;
+    transition: background .15s var(--ease), color .15s var(--ease);
+  }
+  .icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+  .icon-btn.quiet { width: 44px; height: 44px; }
+  .icon-btn.armed { width: auto; padding: 0 12px; color: var(--danger); font-size: 14px; font-weight: 500; background: var(--surface-2); }
+
+  /* ---------- Search ---------- */
+  .console { position: sticky; top: 0; z-index: 10; background: var(--bg); padding: calc(env(safe-area-inset-top) + 10px) 0 10px; }
+  .prompt {
+    display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 16px;
+    background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--r);
+    transition: border-color .15s var(--ease), box-shadow .15s var(--ease);
+  }
+  .prompt:focus-within { border-color: var(--accent-ink); box-shadow: 0 0 0 4px var(--mark); }
+  .prompt .sigil { font-family: var(--mono); font-weight: 600; color: var(--accent-ink); font-size: 19px; }
+  :root[dir="rtl"] .prompt .sigil { transform: scaleX(-1); }
+  .prompt input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; outline: none; font-size: 17px; caret-color: var(--accent-ink); }
+  .prompt input::placeholder { color: var(--dim); }
+  .prompt input::-webkit-search-cancel-button { display: none; }
+  .clear { border: 0; background: var(--surface-2); color: var(--dim); width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; }
+
+  .status-row { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-top: 4px; }
+  .status-row::-webkit-scrollbar { display: none; }
+  .status-row button {
+    flex: none; min-height: 40px; padding: 0 14px; border: 0; background: transparent; border-radius: 10px;
+    color: var(--dim); font-size: 15px; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .status-row .num { font-size: 13px; opacity: .75; }
+  .status-row button[aria-pressed="true"] { color: var(--ink); background: var(--surface-2); font-weight: 500; }
+
+  .tags { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 10px 0 14px; border-bottom: 1px solid var(--line); }
+  .tags::-webkit-scrollbar { display: none; }
+  .tag {
+    flex: none; min-height: 36px; padding: 0 14px; border: 1px solid var(--line); background: transparent; border-radius: 999px;
+    color: var(--dim); font-size: 14px; display: inline-flex; align-items: center;
+  }
+  .tag[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+
+  .summary { font-size: 14px; color: var(--dim); padding: 14px 0 2px; min-height: 32px; }
+
+  /* ---------- Records ---------- */
+  .records { list-style: none; margin: 0; padding: 0 0 calc(116px + env(safe-area-inset-bottom)); }
+  .rec { padding: 20px 0; border-bottom: 1px solid var(--line); }
+  .rec-body { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .rec-top { display: flex; align-items: flex-start; gap: 8px; }
+  .rec h3 { flex: 1; min-width: 0; margin: 0; font-size: 18px; font-weight: 500; line-height: 1.6; }
+  .rec h3 a { color: var(--ink); text-decoration: none; }
+  .rec h3 a:hover { color: var(--accent-ink); }
+  .rec h3.latin { direction: ltr; text-align: start; font-size: 16px; overflow-wrap: anywhere; }
+  :root[dir="rtl"] .rec h3.latin { text-align: left; }
+  .rec-top .icon-btn { width: 40px; height: 40px; margin-top: -2px; }
+  .rec-note { margin: 0; font-size: 15px; color: var(--dim); line-height: 1.6; }
+  .rec-meta { display: flex; flex-wrap: wrap; gap: 2px 16px; font-size: 14px; color: var(--dim); }
+  .rec-url { direction: ltr; text-align: left; font-size: 13px; color: var(--dim); opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rec-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+  .rec-foot .tag { min-width: 0; max-width: 100%; min-height: 34px; font-size: 13px; }
+  .tag bdi { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .actions { display: flex; align-items: center; gap: 4px; margin-inline-start: auto; }
+  .state {
+    min-height: 36px; padding: 0 14px; border: 0; background: var(--surface-2); border-radius: 999px;
+    font-size: 14px; display: inline-flex; align-items: center; gap: 8px; color: var(--ink); white-space: nowrap;
+  }
+  .state .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+  .state.new { --c: var(--st-new); }
+  .state.seen { --c: var(--st-seen); }
+  .state.done { --c: var(--st-done); }
+  .state.done span:last-child { color: var(--dim); }
+  .actions .icon-btn { width: 40px; height: 40px; }
+
+  .empty { padding: 48px 0; color: var(--dim); }
+  .empty p { margin: 0 0 8px; max-width: 46ch; }
+  .empty-title { color: var(--ink); font-weight: 600; font-size: 19px; }
+
+  /* ---------- Dock ---------- */
+  .dock {
+    position: fixed; inset-inline: 0; bottom: 0; z-index: 20;
+    padding: 14px var(--pad) calc(14px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--bg) 70%, transparent);
+  }
+  .dock-inner { max-width: 680px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
+  .keys { display: none; font-size: 13px; color: var(--dim); gap: 16px; }
+  .keys kbd { font-family: var(--mono); border: 1px solid var(--line); padding: 1px 7px; border-radius: 6px; margin-inline-end: 6px; color: var(--ink); background: var(--surface); }
+  @media (hover: hover) and (min-width: 720px) { .keys { display: flex; } }
+
+  .btn {
+    min-height: 52px; padding: 0 20px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface);
+    font-size: 16px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background .15s var(--ease), filter .15s var(--ease);
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .btn:disabled { opacity: .55; cursor: default; }
+  .btn.warn { background: transparent; border-color: transparent; color: var(--danger); padding: 0; min-height: 44px; }
+  .dock .btn.primary { flex: 1; box-shadow: 0 6px 20px rgba(0, 0, 0, .18); }
+
+  /* ---------- Sheets ---------- */
+  dialog.sheet {
+    border: 0; background: var(--surface); color: var(--ink);
+    padding: 0; width: 100%; max-width: 600px; max-height: 92dvh;
+    margin: auto auto 0; border-radius: 22px 22px 0 0; overflow: hidden;
+  }
+  dialog.sheet[open] { animation: up .26s var(--ease); }
+  @keyframes up { from { transform: translateY(28px); opacity: 0; } }
+  dialog.sheet::backdrop { background: rgba(0, 0, 0, .5); }
+  @media (min-width: 720px) { dialog.sheet { margin: auto; border-radius: 22px; } }
+  .sheet form { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; max-height: 92dvh; }
+  .titlebar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 12px 6px var(--pad); }
+  :root[dir="rtl"] .titlebar { padding: 16px var(--pad) 6px 12px; }
+  .titlebar h2 { margin: 0; font-size: 21px; font-weight: 600; }
+  .sheet-body { overflow-y: auto; padding: 10px var(--pad) calc(24px + env(safe-area-inset-bottom)); display: grid; gap: 18px; }
+  .sheet-foot { padding: 12px var(--pad) calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); display: flex; }
+  .sheet-foot .btn { flex: 1; }
+
+  .field { display: grid; gap: 10px; border: 0; padding: 0; margin: 0; min-width: 0; }
+  .field > label, .field > legend, .field-title { font-size: 15px; font-weight: 600; padding: 0; }
+  .field legend { margin-bottom: 10px; }
+  .opt { color: var(--dim); font-weight: 400; }
+  .hint { margin: 0; font-size: 14px; color: var(--dim); line-height: 1.6; }
+  .input {
+    width: 100%; min-height: 52px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--bg);
+    padding: 12px 16px; font-size: 17px; outline: none; caret-color: var(--accent);
+  }
+  .input:focus { border-color: var(--accent-ink); }
+  .input::placeholder { color: var(--dim); }
+  textarea.input { resize: vertical; min-height: 140px; line-height: 1.8; }
+  .ltr { direction: ltr; text-align: left; }
+  .pair { display: flex; gap: 10px; }
+  .pair .input { flex: 1; min-width: 0; }
+  .add-body { gap: 24px; }
+  .found-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 32px; }
+  .found { font-size: 14px; color: var(--dim); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .found b { color: var(--ink); font-weight: 500; }
+  .link-btn {
+    border: 0; background: none; padding: 0; min-height: 44px; color: var(--accent-ink); font-size: 15px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 6px; flex: none;
+  }
+  .link-btn:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .add-note { justify-self: start; margin-top: -8px; }
+  .sub-box { display: grid; gap: 10px; padding: 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); }
+  .field-error { margin: 0; font-size: 14px; color: var(--danger); }
+  .input[aria-invalid="true"] { border-color: var(--danger); }
+
+  .picks { display: flex; flex-wrap: wrap; gap: 8px; }
+  .picks input { position: absolute; opacity: 0; pointer-events: none; }
+  .picks label {
+    min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1.5px solid var(--line); color: var(--dim);
+    display: inline-flex; align-items: center; gap: 6px; font-size: 15px; cursor: pointer;
+  }
+  .picks input:checked + label { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  .picks input:focus-visible + label { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+  .picks .new-pick { border-style: dashed; }
+  .lang-name-en { font-family: var(--sans-en); }
+  .lang-name-ar { font-family: var(--sans-ar); }
+  .group { display: grid; gap: 26px; }
+  .panel { display: grid; gap: 22px; padding: 18px; border-radius: 16px; background: var(--bg); border: 1px solid var(--line); }
+  .panel-head h3 { margin: 0; font-size: 18px; font-weight: 600; }
+  .panel-head .hint { margin-top: 2px; }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; z-index: 60; inset-inline: var(--pad); bottom: calc(92px + env(safe-area-inset-bottom));
+    max-width: 460px; margin: 0 auto; background: var(--ink); color: var(--bg);
+    border-radius: 12px; padding: 14px 16px; font-size: 15px;
+    opacity: 0; transform: translateY(8px); pointer-events: none;
+    transition: opacity .2s var(--ease), transform .2s var(--ease);
+  }
+  .toast.show { opacity: 1; transform: none; }
+  .toast.err { background: var(--danger); color: #fff; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-paste" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+</svg>
+
+<header class="frame top">
+  <div class="brand">
+    <div class="mark-logo" aria-hidden="true" dir="ltr">&gt;_</div>
+    <div>
+      <h1 data-i18n="appName">Index</h1>
+      <p data-i18n="tagline"></p>
+    </div>
+  </div>
+  <button class="icon-btn" id="openSettings" data-i18n-aria="settings"><svg class="i"><use href="#i-gear"/></svg></button>
+</header>
+
+<div class="console">
+  <div class="frame">
+    <div class="prompt" role="search">
+      <span class="sigil" aria-hidden="true">&gt;</span>
+      <label for="q" class="sr-only" data-i18n="searchLabel"></label>
+      <input type="search" id="q" data-i18n-ph="searchPh" enterkeyhint="search" autocomplete="off" spellcheck="false">
+      <button type="button" class="clear" id="clearQ" data-i18n-aria="clearSearch" hidden><svg class="i"><use href="#i-x"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<main class="frame">
+  <nav class="status-row" id="statusTabs" data-i18n-aria="statusFilter"></nav>
+  <div class="tags" id="catFilter" role="group" data-i18n-aria="catFilter"></div>
+  <div class="summary" id="summary" aria-live="polite"></div>
+  <ul class="records" id="results"></ul>
+</main>
+
+<div class="dock">
+  <div class="dock-inner">
+    <button class="btn primary" id="openAdd"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg><span data-i18n="addLink"></span></button>
+    <div class="keys" aria-hidden="true">
+      <span><kbd>/</kbd><span data-i18n="kbdSearch"></span></span>
+      <span><kbd>n</kbd><span data-i18n="kbdNew"></span></span>
+    </div>
+  </div>
+</div>
+
+<!-- Add sheet -->
+<dialog class="sheet" id="addSheet" aria-labelledby="addTitle">
+  <form id="addForm" autocomplete="off" novalidate>
+    <div class="titlebar">
+      <h2 id="addTitle" data-i18n="addLink"></h2>
+      <button type="button" class="icon-btn quiet" data-close data-i18n-aria="close"><svg class="i"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="sheet-body add-body">
+      <!-- 1. The link (required) -->
+      <div class="field">
+        <label for="url" data-i18n="url"></label>
+        <div class="pair">
+          <input type="url" id="url" class="input ltr" inputmode="url" placeholder="https://" autocapitalize="off" spellcheck="false" aria-describedby="urlError found">
+          <button type="button" class="btn" id="pasteBtn"><svg class="i" aria-hidden="true"><use href="#i-paste"/></svg><span data-i18n="paste"></span></button>
+        </div>
+        <p class="field-error" id="urlError" role="alert" hidden></p>
+        <div class="found-row" id="foundRow" hidden>
+          <span class="found" id="found"></span>
+          <button type="button" class="link-btn" id="changeSrc" aria-expanded="false" aria-controls="srcBox" data-i18n="changeSrc"></button>
+        </div>
+        <div id="srcBox" class="sub-box" hidden>
+          <div class="picks" id="srcPicks" role="radiogroup" data-i18n-aria="source"></div>
+          <p class="hint" data-i18n="srcHint"></p>
+        </div>
+      </div>
+
+      <!-- 2. Title (what you will search by) -->
+      <div class="field">
+        <label for="title"><span data-i18n="titleLbl"></span> <span class="opt" data-i18n="titleOpt"></span></label>
+        <input type="text" id="title" class="input" data-i18n-ph="titlePh" dir="auto" maxlength="200">
+      </div>
+
+      <!-- 3. Category -->
+      <fieldset class="field">
+        <legend data-i18n="category"></legend>
+        <div class="picks" id="catPicks"></div>
+        <label for="newCat" class="sr-only" data-i18n="newCatPh"></label>
+        <input type="text" id="newCat" class="input" data-i18n-ph="newCatPh" maxlength="40" hidden aria-describedby="catError">
+        <p class="field-error" id="catError" role="alert" hidden></p>
+      </fieldset>
+
+      <!-- 4. Note (optional, on demand) -->
+      <button type="button" class="link-btn add-note" id="addNoteBtn" aria-expanded="false" aria-controls="noteBox"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg><span data-i18n="addNote"></span></button>
+      <div class="field" id="noteBox" hidden>
+        <label for="note"><span data-i18n="note"></span> <span class="opt" data-i18n="optional"></span></label>
+        <input type="text" id="note" class="input" data-i18n-ph="notePh" dir="auto">
+      </div>
+    </div>
+    <div class="sheet-foot">
+      <button type="submit" class="btn primary" id="saveBtn" data-i18n="save"></button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Settings sheet -->
+<dialog class="sheet" id="settings" aria-labelledby="setTitle">
+  <form id="settingsForm" novalidate>
+    <div class="titlebar">
+      <h2 id="setTitle" data-i18n="settings"></h2>
+      <button type="button" class="icon-btn quiet" data-close data-i18n-aria="close"><svg class="i"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="sheet-body">
+      <section class="panel" aria-labelledby="secDisplay">
+        <div class="panel-head">
+          <h3 id="secDisplay" data-i18n="secDisplay"></h3>
+          <p class="hint" data-i18n="instant"></p>
+        </div>
+        <fieldset class="field">
+          <legend data-i18n="language"></legend>
+          <div class="picks">
+            <input type="radio" name="lang" id="langAr" value="ar"><label for="langAr" class="lang-name-ar" lang="ar">العربية</label>
+            <input type="radio" name="lang" id="langEn" value="en"><label for="langEn" class="lang-name-en" lang="en">English</label>
+          </div>
+        </fieldset>
+        <fieldset class="field">
+          <legend data-i18n="appearance"></legend>
+          <div class="picks">
+            <input type="radio" name="theme" id="themeDark" value="dark"><label for="themeDark" data-i18n="dark"></label>
+            <input type="radio" name="theme" id="themeLight" value="light"><label for="themeLight" data-i18n="light"></label>
+          </div>
+        </fieldset>
+      </section>
+
+      <section class="panel" aria-labelledby="secData">
+        <div class="panel-head">
+          <h3 id="secData" data-i18n="secData"></h3>
+        </div>
+        <fieldset class="field">
+          <legend data-i18n="storage"></legend>
+          <div class="picks">
+            <input type="radio" name="mode" id="modeLocal" value="local"><label for="modeLocal" data-i18n="thisDevice"></label>
+            <input type="radio" name="mode" id="modeGithub" value="github"><label for="modeGithub" data-i18n="githubSync"></label>
+          </div>
+        </fieldset>
+
+        <div id="localFields" class="group">
+          <div class="field">
+            <label for="cats" data-i18n="categories"></label>
+            <textarea id="cats" class="input" dir="auto"></textarea>
+            <p class="hint" data-i18n="catsHint"></p>
+          </div>
+          <div class="field">
+            <span class="field-title" data-i18n="backup"></span>
+            <p class="hint" data-i18n="backupHint"></p>
+            <div class="pair">
+              <button type="button" class="btn" id="exportBtn" style="flex:1" data-i18n="exportBtn"></button>
+              <button type="button" class="btn" id="importBtn" style="flex:1" data-i18n="importBtn"></button>
+            </div>
+            <input type="file" id="importFile" accept="application/json,.json" hidden>
+          </div>
+        </div>
+
+        <div id="githubFields" class="group">
+          <p class="hint" data-i18n="ghHint"></p>
+          <div class="field">
+            <label for="owner" data-i18n="owner"></label>
+            <input type="text" id="owner" class="input ltr" autocapitalize="off" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="repo" data-i18n="repo"></label>
+            <input type="text" id="repo" class="input ltr" autocapitalize="off" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="token" data-i18n="token"></label>
+            <input type="password" id="token" class="input ltr" autocapitalize="off" spellcheck="false" placeholder="github_pat_...">
+            <button type="button" class="btn warn" id="forgetToken" style="justify-self:start" data-i18n="forget"></button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn primary" data-i18n="saveData"></button>
+      </section>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------- Language & theme (per device) ----------
+  const PREFS_KEY = "links-hub-prefs";
+  function readPrefs() {
+    try { return JSON.parse(localStorage.getItem(PREFS_KEY) || "{}"); } catch { return {}; }
+  }
+  function writePrefs(p) {
+    try { localStorage.setItem(PREFS_KEY, JSON.stringify(p)); } catch {}
+  }
+  const prefs = readPrefs();
+  let lang = prefs.lang || ((navigator.language || "").toLowerCase().startsWith("ar") ? "ar" : "en");
+  let theme = prefs.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+
+  const I18N = {
+    ar: {
+      appName: "فهرس",
+      tagline: "الروابط المفيدة في مكان واحد",
+      searchLabel: "بحث في الروابط",
+      searchPh: "البحث في الروابط المحفوظة",
+      clearSearch: "مسح البحث",
+      settings: "الإعدادات",
+      language: "اللغة",
+      secDisplay: "العرض",
+      secData: "البيانات",
+      instant: "تُطبَّق التغييرات مباشرة.",
+      saveData: "حفظ إعدادات البيانات",
+      appearance: "المظهر",
+      dark: "داكن",
+      light: "فاتح",
+      langBtn: "English",
+      langAria: "التبديل إلى الإنجليزية",
+      themeToLight: "التبديل إلى الوضع الفاتح",
+      themeToDark: "التبديل إلى الوضع الداكن",
+      statusFilter: "تصفية حسب الحالة",
+      catFilter: "تصفية حسب التصنيف",
+      all: "الكل",
+      allCats: "كل التصنيفات",
+      st_new: "جديد", st_seen: "قيد المتابعة", st_done: "مكتمل",
+      statusAria: (cur, next) => `الحالة: ${cur}. اضغط للتغيير إلى: ${next}`,
+      results: (shown, total) => `النتائج: ${shown} من ${total}`,
+      count: (n) => {
+        if (n === 0) return "لا توجد روابط";
+        if (n === 1) return "رابط واحد";
+        if (n === 2) return "رابطان";
+        const r = n % 100;
+        if (r >= 3 && r <= 10) return `${n} روابط`;
+        if (r >= 11) return `${n} رابطًا`;
+        return `${n} رابط`;
+      },
+      openLink: "فتح الرابط في نافذة جديدة",
+      showCat: (c) => `عرض روابط تصنيف ${c}`,
+      del: "حذف الرابط",
+      confirmDel: "تأكيد الحذف",
+      addLink: "إضافة رابط",
+      emptyTitle: "لا توجد روابط بعد",
+      emptyText: "ستظهر هنا الروابط المحفوظة، مع إمكانية البحث فيها وتصنيفها ومتابعة ما اكتمل منها. تبدأ الإضافة من الزر في أسفل الشاشة.",
+      noResTitle: "لا توجد نتائج",
+      noResText: "يمكن تجربة كلمة أخرى، أو إزالة التصفية بالتصنيف أو الحالة.",
+      setupTitle: "الإعداد غير مكتمل",
+      setupText: "يلزم إدخال رمز الوصول إلى GitHub من الإعدادات، أو تغيير مكان الحفظ إلى «هذا الجهاز».",
+      close: "إغلاق",
+      url: "الرابط",
+      paste: "لصق",
+      category: "التصنيف",
+      newCat: "تصنيف جديد",
+      newCatPh: "اسم التصنيف الجديد",
+      source: "المصدر",
+      srcHint: "يُحدَّد المصدر تلقائيًا من الرابط. أما الروابط القادمة من واتساب فيُختار مصدرها هنا.",
+      note: "ملاحظة",
+      titleLbl: "العنوان",
+      titleOpt: "(يساعد في البحث)",
+      changeSrc: "تغيير المصدر",
+      addNote: "إضافة ملاحظة",
+      titlePh: "عنوان الصفحة أو وصف مختصر",
+      optional: "(اختياري)",
+      notePh: "سبب الحفظ أو وصف قصير",
+      save: "حفظ الرابط",
+      saving: "جارٍ الحفظ…",
+      found: "المصدر",
+      account: "الحساب",
+      src_auto: "تلقائي",
+      "src_WhatsApp (me)": "واتساب: محادثة شخصية",
+      "src_WhatsApp (group)": "واتساب: مجموعة",
+      src_Other: "مصدر آخر",
+      src_X: "X", src_LinkedIn: "لينكدإن", src_Telegram: "تيليجرام", src_YouTube: "يوتيوب", src_GitHub: "GitHub",
+      storage: "مكان الحفظ",
+      thisDevice: "هذا الجهاز",
+      githubSync: "GitHub (مزامنة بين الأجهزة)",
+      categories: "التصنيفات",
+      catsHint: "تصنيف واحد في كل سطر. يمكن أيضًا إنشاء تصنيف جديد مباشرة عند إضافة رابط.",
+      backup: "النسخ الاحتياطي",
+      backupHint: "تُحفظ الروابط على هذا الجهاز فقط. يُنصح بتنزيل نسخة احتياطية من حين لآخر، ويمكن استعادتها على أي جهاز.",
+      exportBtn: "تنزيل نسخة",
+      importBtn: "استعادة نسخة",
+      ghHint: "تُحفظ الروابط في مستودع خاص على GitHub، فتظهر على كل الأجهزة. يبقى رمز الوصول على هذا الجهاز فقط، وتُقرأ التصنيفات من ملف categories.txt في المستودع.",
+      owner: "اسم المستخدم",
+      repo: "اسم المستودع",
+      token: "رمز الوصول (Token)",
+      forget: "حذف الرمز من هذا الجهاز",
+      saveSettings: "حفظ الإعدادات",
+      generalCat: "عام",
+      t_saved: "تم حفظ الرابط.",
+      t_dup: "هذا الرابط محفوظ مسبقًا.",
+      t_deleted: "تم حذف الرابط.",
+      t_settings: "تم حفظ الإعدادات.",
+      t_forgot: "تم حذف رمز الوصول من هذا الجهاز.",
+      t_badUrl: "تعذّر التعرّف على الرابط. يُرجى التحقق منه، أو استخدام زر «لصق».",
+      t_needCat: "يُرجى كتابة اسم التصنيف الجديد.",
+      t_clip: "تعذّر الوصول إلى الحافظة. يمكن لصق الرابط يدويًا في الحقل.",
+      t_restored: (n, count) => `تمت استعادة ${count(n)}.`,
+      t_allDup: "جميع روابط الملف محفوظة مسبقًا.",
+      t_badFile: "الملف المختار ليس نسخة احتياطية صالحة.",
+      errStorage: "تعذّر الحفظ على هذا الجهاز. قد تكون مساحة التخزين ممتلئة، أو أن المتصفح في وضع التصفح الخاص.",
+      err401: "رمز الوصول غير صحيح أو منتهي الصلاحية. يمكن تحديثه من الإعدادات.",
+      err403: "رمز الوصول لا يملك صلاحية الكتابة في المستودع. يلزم ضبط صلاحية Contents على Read and write.",
+      err404: "المستودع غير موجود. يُرجى التحقق من اسم المستخدم واسم المستودع في الإعدادات.",
+      errOther: (s) => `تعذّر الاتصال بـ GitHub (رمز الخطأ ${s}).`,
+      kbdSearch: "للبحث", kbdNew: "لإضافة رابط",
+    },
+    en: {
+      appName: "Index",
+      tagline: "Your useful links, in one place",
+      searchLabel: "Search links",
+      searchPh: "Search saved links",
+      clearSearch: "Clear search",
+      settings: "Settings",
+      language: "Language",
+      secDisplay: "Display",
+      secData: "Data",
+      instant: "Changes apply right away.",
+      saveData: "Save data settings",
+      appearance: "Appearance",
+      dark: "Dark",
+      light: "Light",
+      langBtn: "عربي",
+      langAria: "Switch to Arabic",
+      themeToLight: "Switch to light mode",
+      themeToDark: "Switch to dark mode",
+      statusFilter: "Filter by status",
+      catFilter: "Filter by category",
+      all: "All",
+      allCats: "All categories",
+      st_new: "New", st_seen: "In progress", st_done: "Done",
+      statusAria: (cur, next) => `Status: ${cur}. Tap to change to ${next}`,
+      results: (shown, total) => `${shown} of ${total} links`,
+      count: (n) => (n === 0 ? "No links" : n === 1 ? "1 link" : `${n} links`),
+      openLink: "Open link in a new tab",
+      showCat: (c) => `Show links in ${c}`,
+      del: "Delete link",
+      confirmDel: "Confirm delete",
+      addLink: "Add link",
+      emptyTitle: "No links yet",
+      emptyText: "Saved links appear here, ready to search, sort by category and mark as done. Use the button at the bottom to add one.",
+      noResTitle: "No results",
+      noResText: "Try another word, or clear the category and status filters.",
+      setupTitle: "Setup isn't finished",
+      setupText: "Add a GitHub access token in Settings, or switch storage to “This device”.",
+      close: "Close",
+      url: "Link",
+      paste: "Paste",
+      category: "Category",
+      newCat: "New category",
+      newCatPh: "New category name",
+      source: "Source",
+      srcHint: "The source is detected from the link. For links that came from WhatsApp, pick it here.",
+      note: "Note",
+      titleLbl: "Title",
+      titleOpt: "(helps search)",
+      changeSrc: "Change source",
+      addNote: "Add a note",
+      titlePh: "Page title or a short description",
+      optional: "(optional)",
+      notePh: "Why you saved it, or a short description",
+      save: "Save link",
+      saving: "Saving…",
+      found: "Source",
+      account: "account",
+      src_auto: "Automatic",
+      "src_WhatsApp (me)": "WhatsApp: personal chat",
+      "src_WhatsApp (group)": "WhatsApp: group",
+      src_Other: "Other source",
+      src_X: "X", src_LinkedIn: "LinkedIn", src_Telegram: "Telegram", src_YouTube: "YouTube", src_GitHub: "GitHub",
+      storage: "Storage",
+      thisDevice: "This device",
+      githubSync: "GitHub (sync across devices)",
+      categories: "Categories",
+      catsHint: "One category per line. You can also create a category while adding a link.",
+      backup: "Backup",
+      backupHint: "Links are stored on this device only. Download a backup now and then; you can restore it on any device.",
+      exportBtn: "Download backup",
+      importBtn: "Restore backup",
+      ghHint: "Links are stored in a private GitHub repository, so they show up on every device. The access token stays on this device, and categories are read from categories.txt in the repository.",
+      owner: "Username",
+      repo: "Repository",
+      token: "Access token",
+      forget: "Remove token from this device",
+      saveSettings: "Save settings",
+      generalCat: "General",
+      t_saved: "Link saved.",
+      t_dup: "This link is already saved.",
+      t_deleted: "Link deleted.",
+      t_settings: "Settings saved.",
+      t_forgot: "Token removed from this device.",
+      t_badUrl: "That doesn't look like a link. Check it, or use Paste.",
+      t_needCat: "Type a name for the new category.",
+      t_clip: "Couldn't read the clipboard. Paste the link into the field instead.",
+      t_restored: (n, count) => `Restored ${count(n)}.`,
+      t_allDup: "Every link in this file is already saved.",
+      t_badFile: "That file isn't a valid backup.",
+      errStorage: "Couldn't save on this device. Storage may be full, or the browser is in private mode.",
+      err401: "The access token is wrong or expired. Update it in Settings.",
+      err403: "The access token can't write to this repository. Set Contents to Read and write.",
+      err404: "Repository not found. Check the username and repository in Settings.",
+      errOther: (s) => `Couldn't reach GitHub (error ${s}).`,
+      kbdSearch: "search", kbdNew: "new link",
+    },
+  };
+
+  function t(key, ...args) {
+    const v = (I18N[lang] && I18N[lang][key]) ?? I18N.en[key] ?? key;
+    return typeof v === "function" ? v(...args) : v;
+  }
+
+  function applyLangAndTheme() {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    document.documentElement.dataset.theme = theme;
+    document.title = t("appName");
+    document.querySelector('meta[name="apple-mobile-web-app-title"]').content = t("appName");
+    document.querySelector('meta[name="theme-color"]').content = theme === "light" ? "#f4f6ee" : "#161816";
+    document.querySelectorAll("[data-i18n]").forEach((n) => { n.textContent = t(n.dataset.i18n); });
+    document.querySelectorAll("[data-i18n-ph]").forEach((n) => { n.placeholder = t(n.dataset.i18nPh); });
+    document.querySelectorAll("[data-i18n-aria]").forEach((n) => { n.setAttribute("aria-label", t(n.dataset.i18nAria)); });
+  }
+  applyLangAndTheme();
+
+
+  // ---------- Config (stored per device) ----------
+  const CONFIG_KEY = "links-hub-config";
+  const LOCAL_DATA_KEY = "links-hub-data";
+  const DATA_PATH = "links.json";
+  const CATEGORIES_PATH = "categories.txt";
+  // Everyone starts with one general category and builds their own list
+  const FALLBACK_CAT = t("generalCat");
+  const DEFAULT_CATEGORIES = [FALLBACK_CAT];
+  const DEFAULTS = {
+    mode: "local",
+    owner: "",
+    repo: "links-data",
+    token: "",
+    categories: DEFAULT_CATEGORIES,
+  };
+
+  function readJSON(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch { return fallback; }
+  }
+  function writeJSON(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+    catch { return false; }
+  }
+
+  let config = { ...DEFAULTS, ...readJSON(CONFIG_KEY, {}) };
+  if (!Array.isArray(config.categories) || !config.categories.length) config.categories = DEFAULT_CATEGORIES;
+
+  // ---------- State ----------
+  let links = [];
+  let categories = [];
+  let filterCat = "all";
+  let filterStatus = "all";
+  let query = "";
+
+  const $ = (id) => document.getElementById(id);
+  const NEXT_STATUS = { new: "seen", seen: "done", done: "new" };
+
+  // ---------- UTF-8 safe base64 ----------
+  function toBase64(str) {
+    const bytes = new TextEncoder().encode(str);
+    let bin = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    }
+    return btoa(bin);
+  }
+  function fromBase64(b64) {
+    const bin = atob(b64.replace(/\s/g, ""));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  // ---------- Storage: this device ----------
+  const localStore = {
+    ready: () => true,
+    async read() {
+      const data = readJSON(LOCAL_DATA_KEY, null) || { version: 1, links: [] };
+      if (!Array.isArray(data.links)) data.links = [];
+      return data;
+    },
+    async mutate(change) {
+      const data = await this.read();
+      if (change(data) === false) { links = data.links; return false; }
+      if (!writeJSON(LOCAL_DATA_KEY, data)) throw new Error(t("errStorage"));
+      links = data.links;
+      return true;
+    },
+    async categories() {
+      return config.categories;
+    },
+  };
+
+  // ---------- Storage: GitHub repo ----------
+  function apiUrl(path) {
+    return `https://api.github.com/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}/contents/${path}`;
+  }
+  function ghHeaders(extra = {}) {
+    return {
+      "Authorization": `Bearer ${config.token}`,
+      "Accept": "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      ...extra,
+    };
+  }
+  function ghError(status) {
+    if (status === 401) return t("err401");
+    if (status === 403) return t("err403");
+    if (status === 404) return t("err404");
+    return t("errOther", status);
+  }
+  async function ghGet(path) {
+    const res = await fetch(apiUrl(path) + `?t=${Date.now()}`, { headers: ghHeaders(), cache: "no-store" });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(ghError(res.status));
+    return res.json();
+  }
+  async function ghPut(path, content, sha, message) {
+    const body = { message, content: toBase64(content) };
+    if (sha) body.sha = sha;
+    const res = await fetch(apiUrl(path), {
+      method: "PUT",
+      headers: ghHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(body),
+    });
+    if (res.status === 409 || res.status === 422) { const e = new Error("conflict"); e.conflict = true; throw e; }
+    if (!res.ok) throw new Error(ghError(res.status));
+    return res.json();
+  }
+
+  const githubStore = {
+    ready: () => Boolean(config.token),
+    async readWithSha() {
+      const file = await ghGet(DATA_PATH);
+      if (!file) return { data: { version: 1, links: [] }, sha: null };
+      const data = JSON.parse(fromBase64(file.content));
+      if (!Array.isArray(data.links)) data.links = [];
+      return { data, sha: file.sha };
+    },
+    async read() {
+      return (await this.readWithSha()).data;
+    },
+    // Read latest, apply change, write back. Retries once if another device wrote in between.
+    async mutate(change, message) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const { data, sha } = await this.readWithSha();
+        if (change(data) === false) { links = data.links; return false; }
+        try {
+          await ghPut(DATA_PATH, JSON.stringify(data, null, 2) + "\n", sha, message);
+          links = data.links;
+          return true;
+        } catch (e) {
+          if (!e.conflict || attempt === 1) throw e;
+        }
+      }
+    },
+    async categories() {
+      const file = await ghGet(CATEGORIES_PATH);
+      const text = file ? fromBase64(file.content) : "";
+      const list = text.split(/\r?\n/).map((s) => s.trim()).filter((s) => s && !s.startsWith("+"));
+      return list.length ? list : DEFAULT_CATEGORIES;
+    },
+  };
+
+  const store = () => (config.mode === "github" ? githubStore : localStore);
+
+  // ---------- Link helpers ----------
+  function extractUrl(text) {
+    const t = (text || "").trim();
+    const m = t.match(/https?:\/\/[^\s<>"']+/i);
+    if (m) return m[0];
+    if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(t)) return "https://" + t;
+    return "";
+  }
+
+  function detectSource(urlStr) {
+    let u;
+    try { u = new URL(urlStr); } catch { return { source: "Web", account: "" }; }
+    const host = u.hostname.replace(/^(www|m|mobile)\./, "");
+    const seg = u.pathname.split("/").filter(Boolean);
+    if (host === "x.com" || host === "twitter.com") {
+      const skip = ["i", "home", "search", "intent", "hashtag", "explore"];
+      return { source: "X", account: seg[0] && !skip.includes(seg[0]) ? "@" + seg[0] : "" };
+    }
+    if (host.endsWith("linkedin.com")) {
+      let account = "";
+      if ((seg[0] === "in" || seg[0] === "company") && seg[1]) account = seg[1];
+      else if (seg[0] === "posts" && seg[1]) account = seg[1].split("_")[0];
+      return { source: "LinkedIn", account };
+    }
+    if (host === "t.me" || host === "telegram.me") {
+      const name = seg[0] === "s" ? seg[1] : seg[0];
+      return { source: "Telegram", account: name ? "@" + name : "" };
+    }
+    if (host === "youtube.com" || host === "youtu.be") {
+      return { source: "YouTube", account: seg[0] && seg[0].startsWith("@") ? seg[0] : "" };
+    }
+    if (host === "github.com") {
+      return { source: "GitHub", account: seg[0] || "" };
+    }
+    return { source: "Web", account: host };
+  }
+
+  function makeId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+
+  // ---------- Helpers ----------
+  const SOURCE_KEYS = ["auto", "WhatsApp (me)", "WhatsApp (group)", "Other"];
+  const KNOWN_SOURCES = ["X", "LinkedIn", "Telegram", "YouTube", "GitHub", "WhatsApp (me)", "WhatsApp (group)", "Other"];
+  const STATUSES = ["new", "seen", "done"];
+  const STATUS_GLYPH = { new: "[ ]", seen: "[~]", done: "[x]" };
+  const LAST_CAT_KEY = "links-hub-last-category";
+  const statusLabel = (s) => t("st_" + s);
+
+  function svgIcon(id) {
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("class", "i");
+    svg.setAttribute("aria-hidden", "true");
+    const use = document.createElementNS(ns, "use");
+    use.setAttribute("href", "#" + id);
+    svg.append(use);
+    return svg;
+  }
+
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  // Write text into a node, wrapping search matches in <mark> (no innerHTML)
+  function highlightInto(node, text, terms) {
+    node.textContent = "";
+    if (!terms.length || !text) { node.textContent = text || ""; return; }
+    const lower = text.toLowerCase();
+    let i = 0;
+    while (i < text.length) {
+      let best = -1, len = 0;
+      for (const w of terms) {
+        const at = lower.indexOf(w, i);
+        if (at !== -1 && (best === -1 || at < best)) { best = at; len = w.length; }
+      }
+      if (best === -1) { node.append(text.slice(i)); break; }
+      if (best > i) node.append(text.slice(i, best));
+      node.append(el("mark", null, text.slice(best, best + len)));
+      i = best + len;
+    }
+  }
+
+  function readableUrl(url) {
+    try {
+      const u = new URL(url);
+      const path = decodeURIComponent(u.pathname).replace(/\/$/, "");
+      return u.hostname.replace(/^www\./, "") + (path.length < 70 ? path : path.slice(0, 70) + "…");
+    } catch { return url; }
+  }
+
+  function sourceName(l) {
+    return KNOWN_SOURCES.includes(l.source) ? t("src_" + l.source) : (l.account || l.source || "");
+  }
+
+  function shortDate(iso) {
+    return (iso || "").slice(0, 10);
+  }
+
+  // Stable record numbers: oldest link is 0001
+  function recordNumbers() {
+    const map = new Map();
+    [...links].sort((a, b) => (a.saved_at || "").localeCompare(b.saved_at || ""))
+      .forEach((l, i) => map.set(l.id, String(i + 1).padStart(4, "0")));
+    return map;
+  }
+
+  // ---------- Filtering ----------
+  function matches(l, ignoreStatus = false) {
+    if (filterCat !== "all" && l.category !== filterCat) return false;
+    if (!ignoreStatus && filterStatus !== "all" && (l.status || "new") !== filterStatus) return false;
+    if (!query) return true;
+    const hay = [l.title, l.url, l.note, l.category, sourceName(l), l.account].join(" ").toLowerCase();
+    return query.toLowerCase().split(/\s+/).filter(Boolean).every((w) => hay.includes(w));
+  }
+
+  // ---------- Rendering ----------
+  function renderStatusTabs() {
+    const pool = links.filter((l) => matches(l, true));
+    const counts = { all: pool.length, new: 0, seen: 0, done: 0 };
+    for (const l of pool) counts[l.status || "new"]++;
+    const tabs = [["all", t("all")], ...STATUSES.map((s) => [s, statusLabel(s)])];
+    $("statusTabs").replaceChildren(...tabs.map(([v, label]) => {
+      const b = el("button");
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(filterStatus === v));
+      b.append(el("span", null, label), el("span", "num", String(counts[v])));
+      b.addEventListener("click", () => { filterStatus = v; render(); });
+      return b;
+    }));
+    $("statusTabs").hidden = links.length === 0;
+  }
+
+  function renderCatFilter() {
+    const counts = {};
+    for (const l of links) counts[l.category] = (counts[l.category] || 0) + 1;
+    const used = [...new Set([...categories, ...Object.keys(counts)])].filter((c) => counts[c]);
+    const mk = (label, value) => {
+      const b = el("button", "tag");
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(filterCat === value));
+      b.append(el("bdi", null, label));
+      b.addEventListener("click", () => { filterCat = filterCat === value ? "all" : value; render(); });
+      return b;
+    };
+    $("catFilter").replaceChildren(mk(t("allCats"), "all"), ...used.map((c) => mk(c, c)));
+    $("catFilter").hidden = used.length < 2;
+  }
+
+  function emptyState(title, text) {
+    const li = el("li", "empty");
+    li.append(el("p", "empty-title", title), el("p", null, text));
+    return li;
+  }
+
+  function renderRow(l, terms, num) {
+    const li = el("li", "rec");
+    const safe = /^https?:\/\//i.test(l.url);
+
+
+    const body = el("div", "rec-body");
+
+    const top = el("div", "rec-top");
+    const h3 = el("h3");
+    const a = el("a");
+    const heading = l.title || l.note;
+    highlightInto(a, heading || readableUrl(l.url), terms);
+    if (!heading) h3.classList.add("latin");
+    else h3.dir = "auto";
+    if (safe) { a.href = l.url; a.target = "_blank"; a.rel = "noopener noreferrer"; }
+    h3.append(a);
+    const go = el("a", "icon-btn");
+    go.setAttribute("aria-label", t("openLink"));
+    go.append(svgIcon("i-out"));
+    if (safe) { go.href = l.url; go.target = "_blank"; go.rel = "noopener noreferrer"; }
+    top.append(h3, go);
+
+    const meta = el("div", "rec-meta");
+    const src = el("span");
+    highlightInto(src, sourceName(l), terms);
+    meta.append(src);
+    if (l.account && KNOWN_SOURCES.includes(l.source)) {
+      const acc = el("bdi", "latin-inline");
+      highlightInto(acc, l.account, terms);
+      meta.append(acc);
+    }
+    const time = el("time", "latin-inline", shortDate(l.saved_at));
+    time.dateTime = l.saved_at || "";
+    meta.append(time);
+
+    let noteLine = null;
+    if (l.title && l.note) {
+      noteLine = el("p", "rec-note");
+      noteLine.dir = "auto";
+      highlightInto(noteLine, l.note, terms);
+    }
+    const addr = el("div", "rec-url");
+    highlightInto(addr, l.url, terms);
+
+    const foot = el("div", "rec-foot");
+    const cat = el("button", "tag");
+    cat.type = "button";
+    const catText = el("bdi");
+    highlightInto(catText, l.category, terms);
+    cat.append(catText);
+    cat.setAttribute("aria-label", t("showCat", l.category));
+    cat.addEventListener("click", () => { filterCat = l.category; render(); window.scrollTo({ top: 0 }); });
+
+    const status = l.status || "new";
+    const st = el("button", `state ${status}`);
+    st.type = "button";
+    st.append(el("span", "dot"), el("span", null, statusLabel(status)));
+    st.setAttribute("aria-label", t("statusAria", statusLabel(status), statusLabel(NEXT_STATUS[status])));
+    st.addEventListener("click", () => cycleStatus(l.id, st));
+
+    const del = el("button", "icon-btn quiet");
+    del.type = "button";
+    del.setAttribute("aria-label", t("del"));
+    del.append(svgIcon("i-trash"));
+    let armed = false, timer;
+    del.addEventListener("click", () => {
+      if (!armed) {
+        armed = true;
+        del.classList.add("armed");
+        del.replaceChildren(t("confirmDel"));
+        timer = setTimeout(() => { armed = false; del.classList.remove("armed"); del.replaceChildren(svgIcon("i-trash")); }, 3000);
+        return;
+      }
+      clearTimeout(timer);
+      removeLink(l.id, del);
+    });
+
+    const actions = el("div", "actions");
+    actions.append(st, del);
+    foot.append(cat, actions);
+    body.append(top, ...(noteLine ? [noteLine] : []), meta, addr, foot);
+    li.append(body);
+    return li;
+  }
+
+  function renderResults() {
+    const list = $("results");
+    const shown = links.filter((l) => matches(l)).sort((a, b) => (b.saved_at || "").localeCompare(a.saved_at || ""));
+    const filtered = Boolean(query) || filterCat !== "all" || filterStatus !== "all";
+    $("summary").textContent = !links.length ? "" : filtered ? t("results", shown.length, links.length) : t("count", links.length);
+
+    if (!store().ready()) { list.replaceChildren(emptyState(t("setupTitle"), t("setupText"))); return; }
+    if (!links.length) { list.replaceChildren(emptyState(t("emptyTitle"), t("emptyText"))); return; }
+    if (!shown.length) { list.replaceChildren(emptyState(t("noResTitle"), t("noResText"))); return; }
+    const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+    const nums = recordNumbers();
+    list.replaceChildren(...shown.map((l) => renderRow(l, terms, nums.get(l.id))));
+  }
+
+  function render() {
+    renderStatusTabs();
+    renderCatFilter();
+    renderResults();
+  }
+
+  // ---------- Add sheet ----------
+  function renderPicks() {
+    const last = readJSON(LAST_CAT_KEY, null);
+    const list = categories.length ? categories : [FALLBACK_CAT];
+    const chosen = list.includes(last) ? last : list[0];
+    const catNodes = list.flatMap((c, i) => {
+      const input = el("input");
+      input.type = "radio"; input.name = "category"; input.id = "cat-" + i; input.value = c;
+      input.checked = c === chosen;
+      const label = el("label");
+      label.htmlFor = input.id;
+      label.append(el("bdi", null, c));
+      return [input, label];
+    });
+    const newInput = el("input");
+    newInput.type = "radio"; newInput.name = "category"; newInput.id = "cat-new"; newInput.value = "__new__";
+    const newLabel = el("label", "new-pick");
+    newLabel.htmlFor = "cat-new";
+    newLabel.append(svgIcon("i-plus"), t("newCat"));
+    $("catPicks").replaceChildren(...catNodes, newInput, newLabel);
+    $("newCat").value = "";
+    $("newCat").hidden = true;
+    $("catPicks").onchange = () => {
+      $("newCat").hidden = !newInput.checked;
+      if (newInput.checked) $("newCat").focus();
+    };
+
+    $("srcPicks").replaceChildren(...SOURCE_KEYS.flatMap((v, i) => {
+      const input = el("input");
+      input.type = "radio"; input.name = "source"; input.id = "src-" + i; input.value = v;
+      input.checked = i === 0;
+      const label = el("label", null, t("src_" + v));
+      label.htmlFor = input.id;
+      return [input, label];
+    }));
+  }
+
+  function chosenSource() {
+    return (document.querySelector('input[name="source"]:checked') || {}).value || "auto";
+  }
+
+  // Shows what will be saved as the source, with a quiet "Change source" option
+  function updateFound() {
+    const url = extractUrl($("url").value);
+    $("foundRow").hidden = !url;
+    if (!url) { $("found").replaceChildren(); return; }
+    const pick = chosenSource();
+    const d = detectSource(url);
+    const line = [t("found") + ": "];
+    if (pick !== "auto") {
+      line.push(el("b", null, t("src_" + pick)));
+    } else if (KNOWN_SOURCES.includes(d.source)) {
+      line.push(el("b", null, t("src_" + d.source)));
+      if (d.account) line.push(" ", el("bdi", "latin-inline", d.account));
+    } else {
+      line.push(el("b", null, d.account));
+    }
+    $("found").replaceChildren(...line);
+  }
+
+  function setFieldError(input, box, msg) {
+    box.textContent = msg || "";
+    box.hidden = !msg;
+    if (msg) input.setAttribute("aria-invalid", "true"); else input.removeAttribute("aria-invalid");
+  }
+
+  // Split pasted text into the link and any words around it (used as the title if empty)
+  function fillFromText(text) {
+    const url = extractUrl(text);
+    $("url").value = url || text;
+    setFieldError($("url"), $("urlError"), "");
+    if (url) {
+      const rest = text.replace(url, " ").replace(/\s+/g, " ").trim().replace(/^[\-–—:|•]+|[\-–—:|•]+$/g, "").trim();
+      if (rest && !$("title").value.trim()) $("title").value = rest.slice(0, 200);
+    }
+    updateFound();
+  }
+
+  function openAdd(prefill) {
+    if (!store().ready()) { openSettings(); return; }
+    renderPicks();
+    $("url").value = "";
+    $("note").value = "";
+    $("title").value = "";
+    $("srcBox").hidden = true;
+    $("changeSrc").setAttribute("aria-expanded", "false");
+    $("noteBox").hidden = true;
+    $("addNoteBtn").hidden = false;
+    $("addNoteBtn").setAttribute("aria-expanded", "false");
+    setFieldError($("url"), $("urlError"), "");
+    setFieldError($("newCat"), $("catError"), "");
+    if (prefill) fillFromText(prefill);
+    updateFound();
+    $("addSheet").showModal();
+  }
+
+  async function addLink(ev) {
+    ev.preventDefault();
+    const url = extractUrl($("url").value);
+    if (!url) { setFieldError($("url"), $("urlError"), t("t_badUrl")); $("url").focus(); return; }
+    let cat = (document.querySelector('input[name="category"]:checked') || {}).value || FALLBACK_CAT;
+    if (cat === "__new__") {
+      cat = $("newCat").value.trim().replace(/\s+/g, " ");
+      if (!cat) { setFieldError($("newCat"), $("catError"), t("t_needCat")); $("newCat").focus(); return; }
+    }
+    const pickedSource = chosenSource();
+    const detected = detectSource(url);
+    const record = {
+      id: makeId(),
+      url,
+      category: cat,
+      title: $("title").value.trim(),
+      note: $("note").value.trim(),
+      source: pickedSource === "auto" ? detected.source : pickedSource,
+      account: pickedSource === "auto" ? detected.account : "",
+      status: "new",
+      saved_at: new Date().toISOString(),
+    };
+    const btn = $("saveBtn");
+    btn.disabled = true;
+    btn.textContent = t("saving");
+    try {
+      const saved = await store().mutate((data) => {
+        if (data.links.some((l) => l.url === url)) return false;
+        data.links.push(record);
+      }, `Add link: ${record.category}`);
+      writeJSON(LAST_CAT_KEY, cat);
+      if (!categories.includes(cat)) {
+        categories.push(cat);
+        if (config.mode !== "github") {
+          config.categories = [...new Set([...config.categories, cat])];
+          writeJSON(CONFIG_KEY, config);
+        }
+      }
+      if (saved === false) toast(t("t_dup"));
+      else { toast(t("t_saved")); $("addSheet").close(); }
+      render();
+    } catch (e) {
+      toast(e.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = t("save");
+    }
+  }
+
+  // ---------- Row actions ----------
+  let toastTimer;
+  function toast(msg, isErr = false) {
+    const box = $("toast");
+    box.textContent = msg;
+    box.className = "toast show" + (isErr ? " err" : "");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { box.className = "toast" + (isErr ? " err" : ""); }, isErr ? 5000 : 2400);
+  }
+
+  async function refresh() {
+    links = [];
+    if (!store().ready()) { categories = config.categories; render(); return; }
+    try {
+      const listed = await store().categories();
+      links = (await store().read()).links;
+      categories = [...new Set([...listed, ...links.map((l) => l.category).filter(Boolean)])];
+    } catch (e) {
+      toast(e.message, true);
+    }
+    render();
+  }
+
+  async function cycleStatus(id, btn) {
+    btn.disabled = true;
+    try {
+      await store().mutate((data) => {
+        const l = data.links.find((x) => x.id === id);
+        if (!l) return false;
+        l.status = NEXT_STATUS[l.status] || "seen";
+      }, "Update status");
+      render();
+    } catch (e) {
+      btn.disabled = false;
+      toast(e.message, true);
+    }
+  }
+
+  async function removeLink(id, btn) {
+    btn.disabled = true;
+    try {
+      await store().mutate((data) => {
+        const before = data.links.length;
+        data.links = data.links.filter((x) => x.id !== id);
+        if (data.links.length === before) return false;
+      }, "Delete link");
+      toast(t("t_deleted"));
+      render();
+    } catch (e) {
+      btn.disabled = false;
+      toast(e.message, true);
+    }
+  }
+
+  async function pasteFromClipboard() {
+    try {
+      const text = await navigator.clipboard.readText();
+      fillFromText(text);
+      updateFound();
+    } catch {
+      toast(t("t_clip"), true);
+      $("url").focus();
+    }
+  }
+
+  // ---------- Backup ----------
+  async function exportBackup() {
+    try {
+      const data = await store().read();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `index-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    } catch (e) {
+      toast(e.message, true);
+    }
+  }
+
+  async function importBackup(file) {
+    try {
+      const incoming = JSON.parse(await file.text());
+      const list = Array.isArray(incoming) ? incoming : incoming.links;
+      if (!Array.isArray(list)) throw new Error("bad file");
+      let added = 0;
+      await store().mutate((data) => {
+        const known = new Set(data.links.map((l) => l.url));
+        for (const l of list) {
+          if (!l || typeof l.url !== "string" || known.has(l.url)) continue;
+          data.links.push({
+            id: l.id || makeId(),
+            url: l.url,
+            category: l.category || FALLBACK_CAT,
+            title: l.title || "",
+            note: l.note || "",
+            source: l.source || detectSource(l.url).source,
+            account: l.account || "",
+            status: STATUSES.includes(l.status) ? l.status : "new",
+            saved_at: l.saved_at || new Date().toISOString(),
+          });
+          known.add(l.url);
+          added++;
+        }
+        if (!added) return false;
+      }, "Import backup");
+      toast(added ? t("t_restored", added, (n) => t("count", n)) : t("t_allDup"));
+      render();
+    } catch {
+      toast(t("t_badFile"), true);
+    }
+  }
+
+  // ---------- Settings ----------
+  function currentMode() { return $("modeGithub").checked ? "github" : "local"; }
+  function syncSettingsFields() {
+    const gh = currentMode() === "github";
+    $("githubFields").hidden = !gh;
+    $("localFields").hidden = gh;
+  }
+  function openSettings() {
+    $("modeLocal").checked = config.mode !== "github";
+    $("modeGithub").checked = config.mode === "github";
+    $("owner").value = config.owner;
+    $("repo").value = config.repo;
+    $("token").value = config.token;
+    $("cats").value = config.categories.join("\n");
+    syncSettingsFields();
+    syncPrefPicks();
+    $("settings").showModal();
+  }
+
+  $("modeLocal").addEventListener("change", syncSettingsFields);
+  $("modeGithub").addEventListener("change", syncSettingsFields);
+
+  $("settingsForm").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const cats = $("cats").value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    config = {
+      mode: currentMode(),
+      owner: $("owner").value.trim(),
+      repo: $("repo").value.trim() || DEFAULTS.repo,
+      token: $("token").value.trim(),
+      categories: cats.length ? [...new Set(cats)] : DEFAULT_CATEGORIES,
+    };
+    writeJSON(CONFIG_KEY, config);
+    $("settings").close();
+    toast(t("t_settings"));
+    refresh();
+  });
+
+  $("forgetToken").addEventListener("click", () => {
+    config.token = "";
+    writeJSON(CONFIG_KEY, config);
+    $("token").value = "";
+    toast(t("t_forgot"));
+  });
+
+  $("exportBtn").addEventListener("click", exportBackup);
+  $("importBtn").addEventListener("click", () => $("importFile").click());
+  $("importFile").addEventListener("change", (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (f) importBackup(f);
+    e.target.value = "";
+  });
+
+  // ---------- Language & appearance (in Settings, applied immediately) ----------
+  function syncPrefPicks() {
+    $("langAr").checked = lang === "ar";
+    $("langEn").checked = lang === "en";
+    $("themeDark").checked = theme === "dark";
+    $("themeLight").checked = theme === "light";
+  }
+  function onPrefChange() {
+    const newLang = $("langEn").checked ? "en" : "ar";
+    const newTheme = $("themeLight").checked ? "light" : "dark";
+    const langChanged = newLang !== lang;
+    lang = newLang;
+    theme = newTheme;
+    writePrefs({ lang, theme });
+    applyLangAndTheme();
+    if (langChanged) render();
+  }
+  ["langAr", "langEn", "themeDark", "themeLight"].forEach((id) => $(id).addEventListener("change", onPrefChange));
+
+  // ---------- Wire up ----------
+  document.querySelectorAll("[data-close]").forEach((b) =>
+    b.addEventListener("click", () => b.closest("dialog").close()));
+  document.querySelectorAll("dialog.sheet").forEach((d) =>
+    d.addEventListener("click", (e) => { if (e.target === d) d.close(); }));
+
+  $("openAdd").addEventListener("click", () => openAdd());
+  $("addForm").addEventListener("submit", addLink);
+  $("pasteBtn").addEventListener("click", pasteFromClipboard);
+  $("url").addEventListener("input", () => { setFieldError($("url"), $("urlError"), ""); updateFound(); });
+  $("newCat").addEventListener("input", () => setFieldError($("newCat"), $("catError"), ""));
+  $("srcPicks").addEventListener("change", updateFound);
+  $("changeSrc").addEventListener("click", () => {
+    const open = $("srcBox").hidden;
+    $("srcBox").hidden = !open;
+    $("changeSrc").setAttribute("aria-expanded", String(open));
+  });
+  $("addNoteBtn").addEventListener("click", () => {
+    $("noteBox").hidden = false;
+    $("addNoteBtn").hidden = true;
+    $("addNoteBtn").setAttribute("aria-expanded", "true");
+    $("note").focus();
+  });
+  // Pasting a whole message (e.g. from WhatsApp) keeps the link and turns the rest into the title
+  $("url").addEventListener("paste", (e) => {
+    const text = (e.clipboardData || window.clipboardData).getData("text");
+    if (text && extractUrl(text) && text.trim() !== extractUrl(text)) { e.preventDefault(); fillFromText(text); }
+  });
+  $("openSettings").addEventListener("click", openSettings);
+
+  $("q").addEventListener("input", (e) => {
+    query = e.target.value.trim();
+    $("clearQ").hidden = !e.target.value;
+    renderStatusTabs();
+    renderResults();
+  });
+  $("clearQ").addEventListener("click", () => {
+    $("q").value = ""; query = ""; $("clearQ").hidden = true; $("q").focus(); render();
+  });
+
+  // Keyboard: "/" search, "n" new link (when not typing)
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest("input, textarea, dialog") || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "/") { e.preventDefault(); $("q").focus(); }
+    else if (e.key === "n" || e.key === "ى") { e.preventDefault(); openAdd(); }
+  });
+
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+  const incomingUrl = new URLSearchParams(location.search).get("add");
+  if (incomingUrl) history.replaceState(null, "", location.pathname);
+
+  refresh().then(() => { if (incomingUrl) openAdd(extractUrl(incomingUrl) || incomingUrl); });
+})();
+
+</script>
+</body>
+</html>
